@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #Mu
 #用到哪，学到哪。
 
@@ -20,42 +19,6 @@
 #tar -xzvf /etc/nginx/Mu.tar.gz -C /etc/nginx
 #cat > file << EOF 覆盖&转义(文本中不需要转义的特殊符号前加\)
 #cat >> file << 'EOF' 追加&禁止转义(开头EOF加上''即可)
-set -e
-
-#检查并安装git
-echo "🔍 正在检查 git 是否已安装..."
-if ! command -v git >/dev/null 2>&1; then
-    echo "⚠️ 未检测到 git，正在尝试安装..."
-
-    # 判断系统类型
-    if [ -f /etc/os-release ]; then
-        . /etc/os-release
-        OS_ID=$ID
-    else
-        OS_ID=$(uname -s)
-    fi
-
-    if [[ "$OS_ID" == "debian" || "$OS_ID" == "ubuntu" ]]; then
-        sudo apt update -y
-        sudo apt install git -y || {
-            echo "❌ git 安装失败，请先手动运行以下命令："
-            echo "sudo apt update -y && sudo apt install git -y"
-            exit 1
-        }
-    elif [[ "$OS_ID" == "centos" ]]; then
-        sudo yum update -y
-        sudo yum install git -y || {
-            echo "❌ git 安装失败，请先手动运行以下命令："
-            echo "sudo yum update -y && sudo yum install git -y"
-            exit 1
-        }
-    else
-        echo "❌ 无法识别的系统类型，请手动安装 git。"
-        exit 1
-    fi
-else
-    echo "✅ git 已安装。"
-fi
 
 #安装
 echo -e "\e[32m开始安装nginx和certbot。\e[0m"
@@ -74,6 +37,7 @@ echo -e "\e[32m安装已完成，开始配置SSL证书。\e[0m"
 #        echo -e "\e[31m无效邮箱地址，请重新输入！\e[0m"
 #    fi
 #done
+set -e
 
 #域名
 while :
@@ -125,7 +89,7 @@ echo -e "\e[32m开始申请SSL证书。\e[0m"
 
 sudo openssl dhparam -out /etc/nginx/dhparam.pem 2048
 
-sudo certbot certonly --webroot /etc/nginx/Mu --force-renewal --agree-tos -n -m cert@$domain -d $domain
+sudo certbot certonly --force-renewal --agree-tos -n -w /etc/nginx/Mu -m cert@$domain -d $domain
 
 #覆盖conf
 sudo cat > /etc/nginx/nginx.conf << 'CONFIG'
