@@ -84,7 +84,7 @@ H4sIAAAAAAAAA+xdSW/jTHruBBgEmXvmLLgxwAxkS9wl2TkMJUoUJZESJZFaLg3upLhvWmj40n3PYXLJ
 TARGZ
 
 #解码
-base64 -d /etc/nginx/Mu.txt > /etc/nginx/Mu.tar.gz | xargs chmod 777
+base64 -d /etc/nginx/Mu.txt > /etc/nginx/Mu.tar.gz
 
 #解压
 tar -xzvf /etc/nginx/Mu.tar.gz -C /etc/nginx
