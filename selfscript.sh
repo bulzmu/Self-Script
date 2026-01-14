@@ -307,19 +307,6 @@ server {
     }
 }
 
-# ip return 444
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-    listen 443 default_server;
-    listen [::]:443 default_server;
-    server_name _;
-    return 301 https://\$host\$request_uri;
-    return 444;
-    ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
-    ssl_trusted_certificate /etc/letsencrypt/live/$domain/chain.pem;
-}
 DEFAULT
 
 #include proxy.conf;
@@ -346,8 +333,24 @@ proxy_send_timeout 60s;
 proxy_read_timeout 60s;
 PROXY
 
+#禁止IP访问
+cat > /etc/nginx/sites-available/default << NOIP
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    listen 443 default_server;
+    listen [::]:443 default_server;
+    server_name _;
+    return 301 https://\$host\$request_uri;
+    return 444;
+    ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/$domain/chain.pem;
+}
+NOIP
+
 #创建软连接
-sudo ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+#sudo ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
 #测试配置并重载
 sudo nginx -t && sudo nginx -s reload
