@@ -74,15 +74,12 @@ do
 	esac
 done
 
-#创建ACME-challenge目录
-mkdir -p /etc/nginx/Mu && chown www-data /etc/nginx/Mu
-
 #申请证书
 echo -e "\e[32m开始申请SSL证书。\e[0m"
 
 openssl dhparam -out /etc/nginx/dhparam.pem 2048
 
-certbot certonly --webroot --force-renewal --agree-tos -n -w /etc/nginx/Mu -m cert@$domain -d $domain
+certbot certonly --webroot --force-renewal --agree-tos -n -w /var/www/html -m ssl@cert.bot -d $domain
 
 #cat > file << EOF 覆盖&转义(文本中不需要转义的特殊符号前加\)
 #cat >> file << 'EOF' 追加&禁止转义(开头EOF加上''即可)
@@ -224,7 +221,27 @@ server {
 #        proxy_set_header Host \$host;
 #        include proxy.conf;
 #    }
-
+    #wxapi
+    location /wxapi {
+        root   /etc/nginx/Mu;
+        index  index.html index.htm;
+    }
+    location /cgi-bin/gettoken {
+        proxy_pass https://qyapi.weixin.qq.com;
+    }
+    location /cgi-bin/message/send {
+        proxy_pass https://qyapi.weixin.qq.com;
+    }
+    location /cgi-bin/menu/create {
+        proxy_pass https://qyapi.weixin.qq.com;
+    }
+    location /cgi-bin/media/upload {
+        proxy_pass https://qyapi.weixin.qq.com;
+    }
+    location /cgi-bin/media/get {
+        proxy_pass https://qyapi.weixin.qq.com;
+    }
+	
     # reverse proxy
     location /lk {
         proxy_pass http://127.0.0.1:16601;
@@ -286,7 +303,7 @@ server {
 
     # ACME-challenge
     location ^~ /.well-known/acme-challenge/ {
-        root /etc/nginx/Mu;
+        root /var/www/html;
     }
 }
 FLO
