@@ -24,10 +24,9 @@ set -e
 
 #安装
 echo -e "\e[32m开始安装nginx和certbot。\e[0m"
-
-apt install -y nginx certbot
-
+sudo apt install -y nginx certbot
 echo -e "\e[32m安装已完成，开始配置SSL证书。\e[0m"
+
 #邮箱
 #while true;
 #do
@@ -39,7 +38,6 @@ echo -e "\e[32m安装已完成，开始配置SSL证书。\e[0m"
 #        echo -e "\e[31m无效邮箱地址，请重新输入！\e[0m"
 #    fi
 #done
-set -e
 
 #域名
 while :
@@ -76,9 +74,7 @@ done
 
 #申请证书
 echo -e "\e[32m开始申请SSL证书。\e[0m"
-
 openssl dhparam -out /etc/nginx/dhparam.pem 2048
-
 certbot certonly --webroot --force-renewal --agree-tos -n -w /var/www/html -m ssl@cert.bot -d $domain
 
 #cat > file << EOF 覆盖&转义(文本中不需要转义的特殊符号前加\)
@@ -96,7 +92,7 @@ base64 -d /etc/nginx/Mu.txt > /etc/nginx/Mu.tar.gz
 tar -xzvf /etc/nginx/Mu.tar.gz -C /etc/nginx
 
 #覆盖nginx.conf
-sudo cat > /etc/nginx/nginx.conf << 'CONFIG'
+cat > /etc/nginx/nginx.conf << 'CONFIG'
 #Mu
 user www-data;
 pid /run/nginx.pid;
@@ -134,10 +130,6 @@ http {
     access_log off;
     error_log /dev/null;
 
-	# Limits
-    limit_req_log_level warn;
-    limit_req_zone $binary_remote_addr zone=login:10m rate=10r/m;
-
     # SSL
     ssl_session_timeout 1d;
     ssl_session_cache shared:SSL:10m;
@@ -157,10 +149,9 @@ http {
     gzip_comp_level 6;
     gzip_types text/plain text/css text/xml application/json application/javascript application/rss+xml application/atom+xml image/svg+xml;
 
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-        expires 30d;
-        add_header Cache-Control "public";
-    }
+	# Limits
+    limit_req_log_level warn;
+    limit_req_zone $binary_remote_addr zone=login:10m rate=10r/m;
 
     # Connection header for WebSocket reverse proxy
     map $http_upgrade $connection_upgrade {
@@ -191,7 +182,7 @@ http {
 CONFIG
 
 #创建ssl.conf
-sudo cat > /etc/nginx/conf.d/FLO.conf << FLO
+cat > /etc/nginx/conf.d/FLO.conf << FLO
 #Mu
 server {
     listen 443 ssl http2 reuseport;
@@ -207,7 +198,7 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "no-referrer-when-downgrade" always;
     add_header Content-Security-Policy "default-src 'self' http: https: ws: wss: data: blob: 'unsafe-inline'; frame-ancestors 'self';" always;
-    add_header Permissions-Policy  "interest-cohort=()" always;
+    add_header Permissions-Policy "interest-cohort=()" always;
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
 
     # reverse proxy
@@ -308,17 +299,17 @@ DEFAULT
 #sudo ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
 #测试配置并重载
+echo -e "\e[35m已配置完成！\e[0m"
 sudo nginx -t && sudo nginx -s reload
 
-echo -e "\e[35m已配置完成！\e[0m"
-
-#echo -e "\e[35mvim 按下i进入编辑模式 | 按下ecs退出编辑模式 | 输入:wq(!强制)保存并退出，输入:q!退出不保存\e[0m"
+#echo -e "\e[32mvim 按下i进入编辑模式 | 按下ecs退出编辑模式 | 输入:wq(!强制)保存并退出，输入:q!退出不保存\e[0m"
 #sudo vim /etc/ssh/sshd_config
 
 #更改SSH端口
 echo -e "\e[35mPort ***** | PermitRootLogin yes | PubkeyAuthentication yes | PasswordAuthentication no\e[0m"
 read -r -p "请输入SSH端口：" sshport
 echo -e "SSH端口：\e[35m$sshport\e[0m"
+
 #写入sshd
 cat >> /etc/ssh/sshd_config << SSHD
 Port $sshport
@@ -327,5 +318,13 @@ PubkeyAuthentication yes
 PasswordAuthentication no
 SSHD
 
-echo -e "\e[35m如有问题输入systemctl start ssh && systemctl enable ssh && systemctl restart sshd(.service)\e[0m"
+#开放防火墙
+#iptables -A INPUT -p tcp --dport $sshport -j ACCEPT
+sudo ufw allow $sshport
+sudo ufw allow 443
+echo "y" | sudo ufw enable
+
+echo -e "\e[31m如有问题输入systemctl start ssh && systemctl enable ssh && systemctl restart sshd(.service)\e[0m"
 service sshd restart
+
+echo -e "\e[35mEND！\e[0m"
