@@ -117,10 +117,10 @@ http {
     types_hash_max_size 2048;
     types_hash_bucket_size 64;
     client_max_body_size 16M;
-	keepalive_timeout 65;
-	
-	# DNS
-	resolver 1.1.1.1 1.0.0.1 [2606:4700:4700::1111] [2606:4700:4700::1001] 8.8.8.8 8.8.4.4 [2001:4860:4860::8888] [2001:4860:4860::8844] valid=60s;
+    keepalive_timeout 65;
+
+    # DNS
+    resolver 1.1.1.1 1.0.0.1 [2606:4700:4700::1111] [2606:4700:4700::1001] 8.8.8.8 8.8.4.4 [2001:4860:4860::8888] [2001:4860:4860::8844] valid=60s;
     resolver_timeout 2s;
 
     # SSL
@@ -135,14 +135,7 @@ http {
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
 
-    # gzip
-    gzip on;
-    gzip_vary on;
-    gzip_proxied any;
-    gzip_comp_level 6;
-    gzip_types text/plain text/css text/xml application/json application/javascript application/rss+xml application/atom+xml image/svg+xml;
-
-	# Limits
+    # Limits
     limit_req_log_level warn;
     limit_req_zone $binary_remote_addr zone=login:10m rate=10r/m;
 
@@ -153,6 +146,39 @@ http {
     # Logging
     access_log off;
     error_log /dev/null;
+
+    # Gzip
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css text/xml application/json application/javascript application/rss+xml application/atom+xml image/svg+xml;
+
+    # Security headers
+    add_header X-XSS-Protection "1; mode=block";
+    add_header X-Content-Type-Options "nosniff";
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header Referrer-Policy "no-referrer-when-downgrade";
+    add_header Content-Security-Policy "default-src 'self' http: https: ws: wss: data: blob: 'unsafe-inline'; frame-ancestors 'self';";
+    add_header Permissions-Policy "interest-cohort=()";
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload";
+    add_header 'Access-Control-Allow-Origin' '*';
+
+    # Proxy headers
+    proxy_http_version 1.1;
+    proxy_ssl_server_name on;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Port $server_port;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    #proxy_set_header Origin $http_origin;
+    proxy_cache_bypass $http_upgrade;
+    proxy_connect_timeout 60s;
+    proxy_send_timeout 60s;
+    proxy_read_timeout 60s;
 
     # Load configs
     include /etc/nginx/conf.d/*.conf;
@@ -175,19 +201,10 @@ server {
     ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
 
-    # security headers
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "no-referrer-when-downgrade" always;
-    add_header Content-Security-Policy "default-src 'self' http: https: ws: wss: data: blob: 'unsafe-inline'; frame-ancestors 'self';" always;
-    add_header Permissions-Policy "interest-cohort=()" always;
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
-
     # reverse proxy
     location /lk {
         proxy_pass http://127.0.0.1:16601;
         proxy_set_header Host \$host;
-        include proxy.conf;
     }
 
     # favicon.ico
@@ -221,33 +238,10 @@ server {
     listen [::]:443 ssl http2;
     server_name *.$domain;
     return 301 https://\$host\$request_uri;
-
-    # SSL
     ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
 }
 FLO
-
-#模块include proxy.conf;
-cat > /etc/nginx/proxy.conf << 'PROXY'
-proxy_http_version 1.1;
-proxy_ssl_server_name on;
-proxy_set_header Upgrade $http_upgrade;
-proxy_set_header Connection "upgrade";
-proxy_set_header Forwarded $proxy_add_forwarded;
-proxy_set_header X-Real-IP $remote_addr;
-proxy_set_header X-Forwarded-Host $host;
-proxy_set_header X-Forwarded-Proto $scheme;
-proxy_set_header X-Forwarded-Port $server_port;
-proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-proxy_cache_bypass $http_upgrade;
-proxy_connect_timeout 60s;
-proxy_send_timeout 60s;
-proxy_read_timeout 60s;
-proxy_buffer_size 128k;
-proxy_buffers 4 256k;
-proxy_busy_buffers_size 256k;
-PROXY
 
 #覆盖default
 cat > /etc/nginx/sites-available/default << DEFAULT
@@ -256,8 +250,8 @@ server {
     listen [::]:80 default_server;
     listen 443 ssl http2 default_server;
     listen [::]:443 ssl http2 default_server;
-	server_name _;
-	return 301 https://\$host\$request_uri;
+    server_name _;
+    return 301 https://\$host\$request_uri;
     ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
 }
