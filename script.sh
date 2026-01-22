@@ -1,26 +1,50 @@
 #!/bin/bash
-#Mu
+
 #用到哪，学到哪。
 
-#安装docker
-#bash <(curl -sSL https://get.docker.com)
-#赋予执行权限
-#chmod +x nginx.sh
-#赋予文件权限 -R=递归子文件
-#chmod -R 777 /etc/nginx/Mu
-#压缩 tar -zcvf 文件名.tar.gz 文件目录
-#tar -zcvf Mu.tar.gz /etc/nginx/Mu
-#解压到指定目录
-#tar -xzvf /etc/nginx/Mu.tar.gz -C /etc/nginx
-#base64编码
-#base64 -w 0 Mu.tar.gz > Mu.txt
-#base64解码
-#base64 -d /etc/nginx/Mu.txt > /etc/nginx/Mu.tar.gz
-#echo 'BASE64***' | base64 --decode | tee /etc/nginx/Mu.tar.gz > /dev/null （还不懂,记录一下）
-#cat > file << EOF 覆盖&转义(文本中不需要转义的特殊符号前加\)
-#cat >> file << 'EOF' 追加&禁止转义(开头EOF加上''即可)
+#bash <(curl -sSL https://get.docker.com)；安装docker
+#chmod +x script.sh；赋予执行权限
+#chmod -R 755 /opt/frps && chown root:root -R /opt/frps；赋予文件权限 -R递归修改目录
+#tar -zcvf Mu.tar.gz /etc/nginx/Mu；压缩指定目录 tar -zcvf 文件名.tar.gz /文件目录
+#tar -xzvf /etc/nginx/Mu.tar.gz -C /etc/nginx；解压指定目录
+#base64 -w 0 Mu.tar.gz > Mu.txt；base64编码
+#base64 -d /etc/nginx/Mu.txt > /etc/nginx/Mu.tar.gz；base64解码
+#cat > file << EOF；覆盖&转义(文本中不需要转义的特殊符号前加\)
+#cat >> file << 'EOF'；追加&禁止转义(开头EOF加上''即可)
+#set -e(错误退出)；set -u(退出报错)；set -x(显示命令)
+#./test.sh 1> stout.txt 2> sterr.txt；将正确信息输出到stout.txt中，将错误信息输出到sterr.txt中
+#./test.sh > stout.txt；将正确信息输出到stout.txt中，将错误信息输出到屏幕上
+#./test.sh 2> sterr.txt；将错误信息输出到sterr.txt中，将正确信息输出到屏幕上
+#./test.sh > test.txt 2>&1；将stdout和stderr输出到test.txt中
+#./test.sh > stout.txt；同下
+#./test.sh 1> stout.txt；同上
+# ！逻辑中的非、不是；
+#if ! 命令; then echo "命令错误"; exit 1; fi；错误退出
+#if [ -s 文件]；如果文件存在或size大于0)
+#if [ ! -s 文件]；如果文件不存在或size不大于等于0
+#if [ -z $string]；如果变量为0或空)
+#if [ ! -z $string]；如果变量不为0或非空
+#/dev/null黑洞，用于丢弃任何写入它的数据；
+#命令 > /dev/null 2>&1；将正确信息和错误信息重定向/dev/null不显示到屏幕上；
+#命令 2>&1 > /dev/null；将错误信息显示到屏幕；正确信息输出/dev/null不显示到屏幕上；
+#find / *.txt 2>/dev/null；根目录中没有权限，错误信息太多，显示正确信息；
 
-set -e
+# 关闭SELINUX
+#if [ -s /etc/selinux/config ] && grep 'SELINUX=enforcing' /etc/selinux/config; then; sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config; setenforce 0; fi
+
+# 检查系统
+arch=$(uname -m)
+case $arch in
+    x86_64)              Is_64bit='y'; ARCH="amd64";;
+    aarch64)             Is_64bit='y'; ARCH="arm64";;
+    arm*|armv*)          Is_64bit='n'; ARCH="arm";;
+    mips)                Is_64bit='n'; ARCH="mips";;
+    mips64)              Is_64bit='y'; ARCH="mips64";;
+    mips64el)            Is_64bit='y'; ARCH="mips64le";;
+    mipsel)              Is_64bit='n'; ARCH="mipsle";;
+    riscv64)             Is_64bit='y'; ARCH="riscv64";;
+    *)                   echo "未知系统";;
+esac
 
 #安装
 echo -e "\e[32m开始安装nginx和certbot。\e[0m"
