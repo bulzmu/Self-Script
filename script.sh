@@ -153,13 +153,13 @@ http {
     gzip_types text/plain text/css text/xml application/json application/javascript application/rss+xml application/atom+xml image/svg+xml;
 
     # Security headers
-    add_header X-Frame-Options "SAMEORIGIN";
-    add_header X-Content-Type-Options "nosniff";
-    add_header X-XSS-Protection "1; mode=block";
-    add_header Permissions-Policy "interest-cohort=()";
-    add_header Referrer-Policy "no-referrer-when-downgrade";
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload";
-    add_header Content-Security-Policy "default-src 'self' http: https: ws: wss: data: blob: 'unsafe-inline'; frame-ancestors 'self';";
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Permissions-Policy "interest-cohort=()" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header Content-Security-Policy "default-src 'self' http: https: ws: wss: data: blob: 'unsafe-inline'; frame-ancestors 'self';" always;
 
     # Load configs
     include /etc/nginx/conf.d/*.conf;
@@ -195,7 +195,6 @@ server {
 		# Proxy headers
         proxy_http_version 1.1;
         proxy_ssl_server_name on;
-        proxy_cache_bypass $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header X-Real-IP $remote_addr;
@@ -266,10 +265,8 @@ echo -e "\e[35mNginx配置完成！\e[0m"
 sudo nginx -t && sudo nginx -s reload
 
 # frp
-#echo "ps -ef | grep 进程名 | grep -v grep | awk '{print $2}' | xargs kill -9"
 while ! test -z "$(ps -ef | grep frps)"; do
-    FRPSPID=$(ps -ef | grep frps | grep -v grep | awk '{print $2}')
-    kill -9 $FRPSPID
+    ps -ef | grep frps | grep -v grep | awk '{print $2}' | xargs kill -9
 done
 
 FRPPATH="/opt/frps"
