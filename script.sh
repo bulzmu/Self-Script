@@ -57,9 +57,9 @@ echo -e "\e[32m开始配置Nginx。\e[0m"
 
 read -r -p "请输入域名：" domain
 echo -e "域名：\e[35m$domain\e[0m"
-read -r -p "请确认域名[Yes/No]：" input
 while true; do
-    case $input in
+    read -r -p "请确认域名[Yes/No]：" input
+	case $input in
 	    [yY][eE][sS]|[yY]) echo -e "\e[35m已确认。\e[0m"
 		    break
 			;;
