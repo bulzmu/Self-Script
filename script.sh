@@ -87,7 +87,9 @@ done
 
 # 证书
 echo -e "\e[32m开始申请SSL证书。\e[0m"
-openssl dhparam -out /etc/nginx/dhparam.pem 2048
+if [ ! -s /etc/nginx/dhparam.pem ]; then
+    openssl dhparam -out /etc/nginx/dhparam.pem 2048
+fi
 certbot certonly --webroot --force-renewal --agree-tos -n -w /var/www/html -m ssl@cert.bot -d $domain
 
 # 伪装站点
@@ -276,6 +278,11 @@ echo -e "\e[35mNginx已配置完成！\e[0m"
 sudo nginx -t && sudo nginx -s reload
 
 # frp
+while ! test -z "$(ps -A | grep -w frps)"; do
+    FRPSPID=$(ps -A | grep -w frps | awk 'NR==1 {print $1}')
+    kill -9 $FRPSPID
+done
+
 FRPPATH="/opt/frps"
 FRPFILE="https://github.com/fatedier/frp/releases/download"
 FRPAPI="https://api.github.com/repos/fatedier/frp/releases/latest"
