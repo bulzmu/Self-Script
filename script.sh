@@ -54,33 +54,31 @@ esac
 echo -e "\e[32m\n开始安装nginx和certbot。\e[0m"
 sudo apt install -y nginx certbot
 
-# 域名
-read -r -p "请输入域名：" domain
-echo -e "域名：\e[35m$domain\e[0m"
-while true; do
-    read -r -p "请确认域名[Yes/No]：" input
-	case $input in
-	    [yY][eE][sS]|[yY]) echo -e "\e[35m已确认。\e[0m"
-		    break
-			;;
-		[nN][oO]|[nN]) echo -e "\e[32m请重新输入。\e[0m"
-		    read -r -p "请输入域名：" domain
-			echo -e "域名：\e[35m$domain\e[0m"
-			;;
-		*) echo -e "\e[31m错误，请重新输入！\e[0m"
-		    sleep 1
-			continue
-			;;
-	esac
-done
-
 # 证书
-echo -e "\e[32m申请SSL证书。\e[0m"
-if [ ! -s /etc/nginx/dhparam.pem ]; then
-    openssl dhparam -out /etc/nginx/dhparam.pem 2048
-fi
-if [ ! -s /etc/letsencrypt/live/$domain/fullchain.pem ]; then
-    certbot certonly --webroot --force-renewal --agree-tos -n -w /var/www/html -m ssl@cert.bot -d $domain
+if [ ! -s /etc/letsencrypt/live ]; then
+    read -r -p "请输入域名：" domain
+	echo -e "域名：\e[35m$domain\e[0m"
+	while true; do
+	    read -r -p "请确认域名[Yes/No]：" input
+		case $input in
+		    [yY][eE][sS]|[yY]) echo -e "\e[35m已确认。\e[0m"
+			    break
+				;;
+			[nN][oO]|[nN]) echo -e "\e[32m请重新输入。\e[0m"
+			    read -r -p "请输入域名：" domain
+				echo -e "域名：\e[35m$domain\e[0m"
+				;;
+			*) echo -e "\e[31m错误，请重新输入！\e[0m"
+			    sleep 1
+				continue
+				;;
+		esac
+	done
+	if [ ! -s /etc/nginx/dhparam.pem ]; then
+	    openssl dhparam -out /etc/nginx/dhparam.pem 2048
+	fi
+	echo -e "\e[32m申请SSL证书。\e[0m"
+	certbot certonly --webroot --force-renewal --agree-tos -n -w /var/www/html -m ssl@cert.bot -d $domain
 else
     while true; do
 	    echo "检测到已有SSL证书"
@@ -297,7 +295,7 @@ sudo nginx -t && sudo nginx -s reload
 
 # frp
 while ! test -z "$(ps -ef | grep frps)"; do
-    ps -ef | grep frps | grep -v grep | awk '{print $2}' | xargs kill -9
+    pkill -9 frps
 done
 
 FRPPATH="/opt/frps"
