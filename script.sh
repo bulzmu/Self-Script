@@ -31,8 +31,7 @@
 #命令 2>&1 > /dev/null；将错误信息显示到屏幕；正确信息输出/dev/null不显示到屏幕上；
 #find / *.txt 2>/dev/null；根目录中没有权限，错误信息太多，显示正确信息；
 
-\n
-
+\
 # 关闭SELINUX
 #if [ -s /etc/selinux/config ] && grep 'SELINUX=enforcing' /etc/selinux/config; then; sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config; setenforce 0; fi
 
