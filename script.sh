@@ -312,25 +312,23 @@ else
 fi
 
 # 令牌
-while :
-do
-    read -r -p "请输入USERNAME：" USERNAME
-    read -r -p "请输入PASSWORD：" PASSWORD
-    TOKEN="${USERNAME}${PASSWORD}"
-    echo -e "TOKEN：\e[35m$TOKEN\e[0m"
+read -r -p "请输入USERNAME：" USERNAME
+read -r -p "请输入PASSWORD：" PASSWORD
+TOKEN="${USERNAME}${PASSWORD}"
+echo -e "TOKEN：\e[35m$TOKEN\e[0m"
+while true; do
     read -r -p "请确认令牌[Yes/No]：" input
-    case $input in
+	case $input in
 	    [yY][eE][sS]|[yY]) echo -e "\e[35m已确认。\e[0m"
 		    break
-		;;
+			;;
 		[nN][oO]|[nN]) echo -e "\e[32m请重新输入。\e[0m"
 		    read -r -p "请输入USERNAME：" USERNAME
 			read -r -p "请输入PASSWORD：" PASSWORD
-			TOKEN="${USERNAME}${PASSWORD}"
-			echo -e "TOKEN：\e[35m$TOKEN\e[0m"
-		;;
+			;;
 		*) echo -e "\e[31m错误，请重新输入！\e[0m"
-		;;
+		    continue
+			;;
 	esac
 done
 
