@@ -54,23 +54,21 @@ sudo apt install -y nginx certbot
 
 # 域名
 echo -e "\e[32m开始配置Nginx。\e[0m"
-while :
-do
-    read -r -p "请输入域名：" domain
-	echo -e "域名：\e[35m$domain\e[0m"
-	read -r -p "请确认域名[Yes/No]：" input
-	case $input in
-	    [yY][eE][sS]|[yY]) echo -e "\e[35m已确认。\e[0m"
-		    break
-		;;
-		[nN][oO]|[nN]) echo -e "\e[32m请重新输入。\e[0m"
-		    read -r -p "请输入域名：" domain
-			echo -e "域名：\e[35m$domain\e[0m"
-		;;
-		*) echo -e "\e[31m错误，请重新输入！\e[0m"
-		;;
-	esac
-done
+
+read -r -p "请输入域名：" domain
+echo -e "域名：\e[35m$domain\e[0m"
+read -r -p "请确认域名[Yes/No]：" input
+case $input in
+    [yY][eE][sS]|[yY]) echo -e "\e[35m已确认。\e[0m"
+	    break
+	;;
+	[nN][oO]|[nN]) echo -e "\e[32m请重新输入。\e[0m"
+	    read -r -p "请输入域名：" domain
+		echo -e "域名：\e[35m$domain\e[0m"
+	;;
+	*) echo -e "\e[31m错误，请重新输入！\e[0m"
+	;;
+esac
 
 # 证书
 echo -e "\e[32m开始申请SSL证书。\e[0m"
