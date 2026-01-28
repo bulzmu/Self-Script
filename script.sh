@@ -326,7 +326,6 @@ if [ -s ${FRPPATH}/frps ]; then
 					FRPURL="${FRPFILE}/v${VER}/${FRPTAR}"
 					echo -e "\e[32m下载$FRPTAR\e[0m"
 					curl -L $FRPURL -o $FRPTAR
-				elif [ -s $FRPTAR ]; then
 					echo -e "\e[32m提取$FRPTAR\e[0m"
 					mkdir -p $FRPPATH
 					tar xzvf $FRPTAR
@@ -373,7 +372,6 @@ else
 		FRPURL="${FRPFILE}/v${VER}/${FRPTAR}"
 		echo -e "\e[32m下载$FRPTAR\e[0m"
 		curl -L $FRPURL -o $FRPTAR
-	elif [ -s $FRPTAR ]; then
 	    echo -e "\e[32m提取$FRPTAR\e[0m"
 		mkdir -p $FRPPATH
 		tar xzvf $FRPTAR
