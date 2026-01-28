@@ -233,12 +233,12 @@ server {
         proxy_http_version 1.1;
         proxy_ssl_server_name on;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Port $server_port;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-Host \$host;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Port \$server_port;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_connect_timeout 60s;
         proxy_send_timeout 60s;
         proxy_read_timeout 60s;
@@ -326,7 +326,7 @@ if [ -s ${FRPPATH}/frps ]; then
 					FRPURL="${FRPFILE}/v${VER}/${FRPTAR}"
 					echo -e "\e[32m下载$FRPTAR\e[0m"
 					curl -L $FRPURL -o $FRPTAR
-					if [ -s $FRPTAR ]; then
+				elif [ -s $FRPTAR ]; then
 					echo -e "\e[32m提取$FRPTAR\e[0m"
 					mkdir -p $FRPPATH
 					tar xzvf $FRPTAR
@@ -352,7 +352,7 @@ if [ -s ${FRPPATH}/frps ]; then
 					case $input in
 					    [yY][eE][sS]|[yY]) echo -e "\e[35m已确认。\e[0m" ; TOML=TOML ; break ;;
 						[nN][oO]|[nN]) echo -e "\e[32m请重新输入。\e[0m" ; read -r -p "请输入USERNAME：" USERNAME ; read -r -p "请输入PASSWORD：" PASSWORD ;;
-						*) echo -e "\e[31m错误，请重新输入！\e[0m" ; sleep 1 ; continue ;;
+						*) echo -e "\e[31m错误，请重新输入！\e[0m" ; continue ;;
 					esac
 				done
 				break
@@ -372,7 +372,7 @@ else
 		FRPURL="${FRPFILE}/v${VER}/${FRPTAR}"
 		echo -e "\e[32m下载$FRPTAR\e[0m"
 		curl -L $FRPURL -o $FRPTAR
-	    if [ -s $FRPTAR ]; then
+	elif [ -s $FRPTAR ]; then
 	    echo -e "\e[32m提取$FRPTAR\e[0m"
 		mkdir -p $FRPPATH
 		tar xzvf $FRPTAR
@@ -398,7 +398,7 @@ else
 		case $input in
 		    [yY][eE][sS]|[yY]) echo -e "\e[35m已确认。\e[0m" ; TOML=TOML ; break ;;
 			[nN][oO]|[nN]) echo -e "\e[32m请重新输入。\e[0m" ; read -r -p "请输入USERNAME：" USERNAME ; read -r -p "请输入PASSWORD：" PASSWORD ;;
-			*) echo -e "\e[31m错误，请重新输入！\e[0m" ; sleep 1 ; continue ;;
+			*) echo -e "\e[31m错误，请重新输入！\e[0m" ; continue ;;
 		esac
 	done
 fi
