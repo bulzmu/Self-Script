@@ -307,6 +307,7 @@ fi
 FRPPATH="/opt/Mu/frps"
 FRPFILE="https://github.com/fatedier/frp/releases/download"
 FRPAPI="https://api.github.com/repos/fatedier/frp/releases/latest"
+VER="$(curl -s $FRPAPI | grep '"tag_name":' | cut -d '"' -f 4 | cut -c 2-)"
 
 # 结束进程
 while ! test -z $(ps -ef | grep frps | grep -v grep); do
@@ -314,16 +315,55 @@ while ! test -z $(ps -ef | grep frps | grep -v grep); do
 done
 
 if [ -s /lib/systemd/system/frps.service ]; then
-while true; do
-    echo -e "\e[32m检测到已安装frps。\e[0m"
-	echo -e "\e[32m1）升级frps\e[0m"
-	echo -e "\e[32m2）退出\e[0m"
-	echo -e "\e[32m3）跳过申请\e[0m"
-	read -p "请输入选项：" OPTION
-	case $OPTION in
-done
+    while true; do
+	    echo -e "\e[32m检测到已安装frps。\e[0m"
+		echo -e "\e[32m1）升级\e[0m"
+		echo -e "\e[32m2）退出\e[0m"
+		read -p "请输入选项：" OPTION
+		case $OPTION in
+		    1)
+			    if [ ! -z $VER ]; then
+				    FRPTAR="frp_${VER}_linux_${ARCH}.tar.gz"
+					FRPURL="${FRPFILE}/v${VER}/${FRPTAR}"
+					echo -e "\e[32m下载$FRPTAR\e[0m"
+					curl -L $FRPURL -o $FRPTAR
+					if [ -s $FRPTAR ]; then
+					echo -e "\e[32m提取$FRPTAR\e[0m"
+					mkdir -p $FRPPATH
+					tar xzvf $FRPTAR
+					mv -f frp_${VER}_linux_${ARCH}/frps ${FRPPATH}
+					rm -rf ${FRPTAR} frp_${VER}_linux_${ARCH}
+				else
+				    echo -e "\e[31m未找到文件！\e[0m"
+					read -r -p "请输入链接：" FRPURL
+					echo -e "\e[32m下载$FRPTAR\e[0m"
+					curl -L $FRPURL -o $FRPTAR
+					echo -e "\e[32m提取$FRPTAR\e[0m"
+					mkdir -p $FRPPATH
+					tar xzvf $FRPTAR
+					mv -f frp_${VER}_linux_${ARCH}/frps ${FRPPATH}
+					rm -rf ${FRPTAR} frp_${VER}_linux_${ARCH}
+				fi
+				read -r -p "请输入USERNAME：" USERNAME
+				read -r -p "请输入PASSWORD：" PASSWORD
+				TOKEN="${USERNAME}${PASSWORD}"
+				echo -e "TOKEN：\e[35m$TOKEN\e[0m"
+				while true; do
+				    read -r -p "请确认令牌[Yes/No]：" input
+					case $input in
+					    [yY][eE][sS]|[yY]) echo -e "\e[35m已确认。\e[0m" ; TOML=TOML ; break ;;
+						[nN][oO]|[nN]) echo -e "\e[32m请重新输入。\e[0m" ; read -r -p "请输入USERNAME：" USERNAME ; read -r -p "请输入PASSWORD：" PASSWORD ;;
+						*) echo -e "\e[31m错误，请重新输入！\e[0m" ; sleep 1 ; continue ;;
+					esac
+				done
+				break
+				;;
+			2)
+			    echo -e "\e[32m退出。\e[0m"
+				exit 0
+				;;
+	done
 else
-VER=$(curl -s $FRPAPI | grep '"tag_name":' | cut -d '"' -f 4 | cut -c 2-)
     if [ ! -z $VER ]; then
 	    FRPTAR="frp_${VER}_linux_${ARCH}.tar.gz"
 		FRPURL="${FRPFILE}/v${VER}/${FRPTAR}"
@@ -353,13 +393,14 @@ VER=$(curl -s $FRPAPI | grep '"tag_name":' | cut -d '"' -f 4 | cut -c 2-)
 	while true; do
 	    read -r -p "请确认令牌[Yes/No]：" input
 		case $input in
-		    [yY][eE][sS]|[yY]) echo -e "\e[35m已确认。\e[0m" ; break ;;
+		    [yY][eE][sS]|[yY]) echo -e "\e[35m已确认。\e[0m" ; TOML=TOML ; break ;;
 			[nN][oO]|[nN]) echo -e "\e[32m请重新输入。\e[0m" ; read -r -p "请输入USERNAME：" USERNAME ; read -r -p "请输入PASSWORD：" PASSWORD ;;
 			*) echo -e "\e[31m错误，请重新输入！\e[0m" ; sleep 1 ; continue ;;
 		esac
 	done
 fi
 
+if [ $TOML = TOML ]; then
 # 配置frps.toml
 cat > ${FRPPATH}/frps.toml << TOML
 bindAddr = "0.0.0.0"
