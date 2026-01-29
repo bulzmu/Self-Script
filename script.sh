@@ -186,7 +186,7 @@ else
 					esac
 				done
 				if [ $domain != $(ls -l /etc/letsencrypt/live |awk '/^d/ {print $NF}') ]; then
-				rm -rf /etc/letsencrypt/live
+				rm -rf /etc/letsencrypt/{live,renewal}
 				rm -rf /etc/nginx/conf.d/FLO.conf
 				fi
 				echo -e "\e[32m申请SSL证书。\e[0m"
@@ -311,7 +311,9 @@ FRPAPI="https://api.github.com/repos/fatedier/frp/releases/latest"
 VER="$(curl -s $FRPAPI | grep '"tag_name":' | cut -d '"' -f 4 | cut -c 2-)"
 
 # 结束进程
-if [ ! -z $(ps -ef | grep frps | grep -v grep) ]; then ; pkill -9 frps ; fi
+if [ ! -z $(ps -ef | grep frps | grep -v grep) ]; then
+    pkill -9 frps
+fi
 
 # TOKEN
 if [ ! -s ${FRPPATH}/frps ]; then
