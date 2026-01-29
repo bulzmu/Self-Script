@@ -59,7 +59,7 @@ TARGZ
 base64 -d /etc/nginx/Mu.txt > /etc/nginx/Mu.tar.gz
 tar -xzvf /etc/nginx/Mu.tar.gz -C /etc/nginx
 
-# 覆盖nginx.conf
+# nginx.conf
 cat > /etc/nginx/nginx.conf << 'CONFIG'
 #Mu
 user nginx;
@@ -203,8 +203,9 @@ else
 	done
 fi
 
-# 创建FLO.conf
+# 配置
 if [ ! -s /etc/nginx/conf.d/FLO.conf ]; then
+# FLO.conf
 cat > /etc/nginx/conf.d/FLO.conf << FLO
 #Mu
 server {
@@ -274,14 +275,14 @@ server {
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
-    server_name *.$domain;
+    server_name $domain;
     return 301 https://$domain\$request_uri;
     ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
 }
 FLO
 
-# 覆盖default
+# default
 cat > /etc/nginx/sites-available/default << DEFAULT
 server {
     listen 80 default_server;
@@ -295,11 +296,11 @@ server {
 }
 DEFAULT
 
-# 创建软连接
+# 软连接
 #ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
-echo -e "\e[35mNginx配置完成！\e[0m"
 nginx -t && nginx -s reload
+echo -e "\e[35mNginx配置完成！\e[0m"
 fi
 
 # frps
@@ -308,14 +309,14 @@ FRPFILE="https://github.com/fatedier/frp/releases/download"
 FRPAPI="https://api.github.com/repos/fatedier/frp/releases/latest"
 VER="$(curl -s $FRPAPI | grep '"tag_name":' | cut -d '"' -f 4 | cut -c 2-)"
 
-# 结束进程
+# 关闭进程
 GREP="$(ps -ef | grep frps | grep -v grep | awk '{print $8}')"
 #if [ ${FRPPATH}/frps == $GREP ]; then
 if [ ! -z $GREP ]; then
     pkill -9 frps
 fi
 
-# TOKEN
+# 认证
 if [ ! -s ${FRPPATH}/frps ]; then
     if [ ! -z $VER ]; then
 	    FRPTAR="frp_${VER}_linux_${ARCH}.tar.gz"
@@ -405,8 +406,9 @@ else
 	done
 fi
 
-# 配置frps.service
+# 配置
 if [ ! -s ${FRPPATH}/frps.toml ]; then
+# frps.toml
 cat > ${FRPPATH}/frps.toml << TOML
 bindAddr = "0.0.0.0"
 bindPort = 7000
@@ -444,6 +446,7 @@ udpPacketSize = 1500
 natholeAnalysisDataReserveHours = 168
 TOML
 
+# frps.service
 cat > /lib/systemd/system/frps.service << FRPS
 [Unit]
 Description=Frp Server Service
@@ -475,7 +478,7 @@ echo -e "\e[32mPort ***** | PermitRootLogin yes | PubkeyAuthentication yes | Pas
 read -r -p "请输入SSH端口：" sshport
 echo -e "SSH端口：\e[35m$sshport\e[0m"
 
-# 写入sshd
+# FLO.conf
 cat > /etc/ssh/sshd_config.d/FLO.conf << SSHD
 Port $sshport
 PermitRootLogin yes
@@ -495,6 +498,8 @@ echo -e "\e[31m如有问题输入systemctl start ssh && systemctl enable ssh && 
 systemctl restart sshd
 fi
 
-service frps status
+# 状态
 ufw status
+service frps status
+
 echo -e "\e[35m\nEND！\e[0m"
