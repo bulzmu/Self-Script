@@ -86,7 +86,7 @@ readp "请确认令牌[Yes/No]：" INPUT
 case $INPUT in
 [yY][eE][sS]|[yY]) purple "已确认。" ; break ;;
 [nN][oO]|[nN]) bule "请重新输入。" ; readp "请输入username：" USERNAME ; readp "请输入password：" PASSWORD ; TOKEN="${USERNAME}${PASSWORD}" ; purple "TOKEN：$TOKEN" ;;
-*) rea "错误，请重新输入！" ; continue ;;
+*) red "错误，请重新输入！" ; continue ;;
 esac
 done
 }
